@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Числовые семьи — Игра — Мягкая математика</title>
+<style>
+/* ============================================================
+   ОСНОВНЫЕ СТИЛИ
+   ============================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Arial', 'Helvetica', sans-serif;
+  color: #2d3436;
+  min-height: 100vh;
+  padding: 20px;
+  position: relative;
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(circle at 0% 0%, rgba(108, 92, 231, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(253, 121, 168, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 0% 100%, rgba(0, 184, 148, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 100% 100%, rgba(253, 203, 110, 0.08) 0%, transparent 45%),
+    #fef9f3;
+
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(108, 92, 231, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at 80% 70%, rgba(253, 121, 168, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, rgba(0, 184, 148, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px, 80px 80px, 100px 100px;
+  background-color: #fef9f3;
+}
+
+/* Водяной знак с рекламой */
+body::before {
+  content: "Мягкая математика · ОГЭ/ЕГЭ · Олимпиады · ВПР · vk.com/smartskillsmaria";
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-22deg);
+  font-size: 34px; font-weight: 900;
+  color: rgba(108, 92, 231, 0.04);
+  white-space: nowrap;
+  pointer-events: none; z-index: 0;
+  user-select: none; letter-spacing: 3px;
+  font-family: 'Arial Black', 'Arial', sans-serif;
+}
+
+.container {
+  position: relative; z-index: 1;
+  max-width: 1000px; margin: 0 auto;
+}
+
+/* ============================================================
+   ЗАГОЛОВОК
+   ============================================================ */
+.game-header {
+  background: linear-gradient(135deg, #6c5ce7, #fd79a8);
+  color: #fff;
+  padding: 25px 30px;
+  border-radius: 24px;
+  text-align: center;
+  margin-bottom: 25px;
+  box-shadow: 0 12px 40px rgba(108, 92, 231, 0.25);
+}
+
+.game-header h1 {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.game-header p {
+  font-size: 15px;
+  opacity: 0.9;
+}
+
+/* ============================================================
+   СТАТИСТИКА
+   ============================================================ */
+.stats {
+  display: flex;
+  justify-content: space-between;
+  background: #fff;
+  padding: 15px 25px;
+  border-radius: 60px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.stats .stat {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.stats .stat-correct { color: #00b894; }
+.stats .stat-wrong { color: #e74c3c; }
+.stats .stat-total { color: #6c5ce7; }
+
+/* ============================================================
+   СЕМЬИ ЧИСЕЛ (КОНТЕЙНЕРЫ)
+   ============================================================ */
+.families {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.family {
+  background: #fff;
+  border: 3px dashed #dfe6e9;
+  border-radius: 20px;
+  padding: 15px;
+  min-height: 110px;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.family.drag-over {
+  border-color: #6c5ce7;
+  background: rgba(108, 92, 231, 0.06);
+  transform: scale(1.02);
+}
+
+.family h3 {
+  color: #6c5ce7;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 5px;
+  padding-bottom: 6px;
+  border-bottom: 2px dashed #f0edff;
+}
+
+.family h3 .symbol {
+  font-weight: 900;
+  color: #fd79a8;
+  font-size: 16px;
+}
+
+.family-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+  min-height: 40px;
+  align-items: center;
+}
+
+.family-items:empty::before {
+  content: "Перетащи сюда";
+  font-size: 11px;
+  color: #b2bec3;
+  font-style: italic;
+}
+
+/* ============================================================
+   ПУЛ ЧИСЕЛ
+   ============================================================ */
+.numbers-pool {
+  background: #fff;
+  padding: 20px;
+  border-radius: 20px;
+  border: 3px dashed #dfe6e9;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+  min-height: 80px;
+  transition: all 0.3s ease;
+}
+
+.numbers-pool.drag-over {
+  border-color: #6c5ce7;
+  background: rgba(108, 92, 231, 0.05);
+}
+
+.numbers-pool:empty::before {
+  content: "Все числа распределены! 🎉";
+  font-size: 14px;
+  color: #00b894;
+  font-style: italic;
+}
+
+/* ============================================================
+   КАРТОЧКА ЧИСЛА
+   ============================================================ */
+.num {
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #f8f9fa, #f0edff);
+  border: 2px solid #dfe6e9;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+  color: #2d3436;
+}
+
+.num:hover {
+  border-color: #6c5ce7;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(108, 92, 231, 0.15);
+}
+
+.num:active { cursor: grabbing; transform: scale(1.05); }
+.num.dragging { opacity: 0.4; transform: scale(0.95); }
+
+.num.correct {
+  background: #d4edda;
+  border-color: #00b894;
+  color: #155724;
+}
+
+.num.wrong {
+  background: #f8d7da;
+  border-color: #e74c3c;
+  color: #721c24;
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* ============================================================
+   КНОПКИ
+   ============================================================ */
+.controls {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.btn {
+  padding: 14px 40px;
+  border-radius: 60px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+  margin: 5px;
+  font-family: 'Arial', sans-serif;
+  transition: all 0.3s ease;
+  color: #fff;
+}
+
+.btn-check {
+  background: #00b894;
+  box-shadow: 0 8px 24px rgba(0, 184, 148, 0.3);
+}
+.btn-check:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0, 184, 148, 0.4);
+}
+
+.btn-reset {
+  background: #6c5ce7;
+  box-shadow: 0 8px 24px rgba(108, 92, 231, 0.3);
+}
+.btn-reset:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(108, 92, 231, 0.4);
+}
+
+.btn-hint {
+  background: #fdcb6e;
+  box-shadow: 0 8px 24px rgba(253, 203, 110, 0.3);
+}
+.btn-hint:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(253, 203, 110, 0.4);
+}
+
+/* ============================================================
+   ОБРАТНАЯ СВЯЗЬ
+   ============================================================ */
+.feedback {
+  text-align: center;
+  padding: 20px;
+  border-radius: 16px;
+  font-size: 17px;
+  font-weight: 700;
+  display: none;
+  margin-bottom: 20px;
+}
+
+.feedback.show {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+.feedback.ok {
+  background: #d4edda;
+  color: #155724;
+  border-left: 5px solid #00b894;
+}
+
+.feedback.no {
+  background: #fff3cd;
+  color: #856404;
+  border-left: 5px solid #fdcb6e;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   РЕКЛАМНЫЙ БЛОК
+   ============================================================ */
+.ad-footer {
+  background: #f8f9fa;
+  border-left: 4px solid #6c5ce7;
+  padding: 20px 25px;
+  border-radius: 16px;
+  font-size: 13px;
+  color: #636e72;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.ad-footer strong {
+  color: #6c5ce7;
+  font-size: 15px;
+}
+
+.ad-footer a {
+  color: #6c5ce7;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-block;
+  margin: 4px 8px;
+}
+
+.ad-footer a:hover {
+  text-decoration: underline;
+  color: #fd79a8;
+}
+
+/* ============================================================
+   АДАПТИВНОСТЬ
+   ============================================================ */
+@media (max-width: 700px) {
+  body::before { font-size: 18px; }
+  .families { grid-template-columns: repeat(2, 1fr); }
+  .game-header h1 { font-size: 22px; }
+  .num { padding: 8px 14px; font-size: 13px; }
+  .family h3 { font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+  .families { grid-template-columns: 1fr 1fr; }
+  .num { padding: 6px 12px; font-size: 12px; }
+  .family { min-height: 90px; padding: 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ЗАГОЛОВОК -->
+  <div class="game-header">
+    <h1>🧩 Числовые семьи</h1>
+    <p>Перетащи каждое число в свою семью!</p>
+  </div>
+
+  <!-- СТАТИСТИКА -->
+  <div class="stats">
+    <div class="stat stat-correct">✅ Верно: <span id="stat-correct">0</span></div>
+    <div class="stat stat-wrong">❌ Ошибок: <span id="stat-wrong">0</span></div>
+    <div class="stat stat-total">📊 Всего: <span id="stat-total">0</span>/10</div>
+  </div>
+
+  <!-- СЕМЬИ ЧИСЕЛ -->
+  <div class="families">
+    <div class="family" data-family="N" ondragover="allowDrop(event)" ondrop="drop(event,'N')" ondragleave="leaveZone(event)">
+      <h3><span class="symbol">N</span> · Натуральные</h3>
+      <div class="family-items"></div>
+    </div>
+    <div class="family" data-family="Z" ondragover="allowDrop(event)" ondrop="drop(event,'Z')" ondragleave="leaveZone(event)">
+      <h3><span class="symbol">Z</span> · Целые</h3>
+      <div class="family-items"></div>
+    </div>
+    <div class="family" data-family="Q" ondragover="allowDrop(event)" ondrop="drop(event,'Q')" ondragleave="leaveZone(event)">
+      <h3><span class="symbol">Q</span> · Рациональные</h3>
+      <div class="family-items"></div>
+    </div>
+    <div class="family" data-family="I" ondragover="allowDrop(event)" ondrop="drop(event,'I')" ondragleave="leaveZone(event)">
+      <h3><span class="symbol">I</span> · Иррациональные</h3>
+      <div class="family-items"></div>
+    </div>
+    <div class="family" data-family="R" ondragover="allowDrop(event)" ondrop="drop(event,'R')" ondragleave="leaveZone(event)">
+      <h3><span class="symbol">R</span> · Действительные</h3>
+      <div class="family-items"></div>
+    </div>
+    <div class="family" data-family="C" ondragover="allowDrop(event)" ondrop="drop(event,'C')" ondragleave="leaveZone(event)">
+      <h3><span class="symbol">C</span> · Комплексные</h3>
+      <div class="family-items"></div>
+    </div>
+  </div>
+
+  <!-- ПУЛ ЧИСЕЛ -->
+  <div class="numbers-pool" id="pool" ondragover="allowDrop(event)" ondrop="drop(event,'pool')" ondragleave="leaveZone(event)"></div>
+
+  <!-- КНОПКИ -->
+  <div class="controls">
+    <button class="btn btn-check" onclick="check()">✅ Проверить</button>
+    <button class="btn btn-hint" onclick="showHint()">💡 Подсказка</button>
+    <button class="btn btn-reset" onclick="reset()">🔄 Сбросить</button>
+  </div>
+
+  <!-- ОБРАТНАЯ СВЯЗЬ -->
+  <div class="feedback" id="feedback"></div>
+
+  <!-- РЕКЛАМА -->
+  <div class="ad-footer">
+    <p><strong>💡 Понравилась игра?</strong></p>
+    <p>В «Мягкой математике» — курсы для 1–11 классов: подготовка к ОГЭ/ЕГЭ, олимпиадам, ВПР и мягкие навыки.</p>
+    <p>
+      <a href="https://vk.com/smartskillsmaria" target="_blank" rel="noopener">📢 Подписывайся на группу</a>
+      <a href="https://vk.com/im/convo/-229273902?entrypoint=community_page&tab=all" target="_blank" rel="noopener">✉️ Пиши Марии Абрамовой</a>
+    </p>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// ДАННЫЕ: ЧИСЛА И ИХ СЕМЬИ
+// ============================================================
+const numbersData = [
+  { name: "5", family: "N" },
+  { name: "−3", family: "Z" },
+  { name: "2/5", family: "Q" },
+  { name: "0", family: "Z" },
+  { name: "√2", family: "I" },
+  { name: "π", family: "I" },
+  { name: "−2,5", family: "Q" },
+  { name: "0,333…", family: "Q" },
+  { name: "√−1", family: "C" },
+  { name: "7", family: "N" }
+];
+
+// ============================================================
+// ПОДСКАЗКА
+// ============================================================
+const hintText = `
+💡 Подсказка:
+• N — Натуральные: 1, 2, 3, ...
+• Z — Целые: ..., −2, −1, 0, 1, 2, ...
+• Q — Рациональные: дроби вида m/n (1/2, 0,75, −3/4)
+• I — Иррациональные: √2, π, e
+• R — Действительные: все Q + I
+• C — Комплексные: a + bi (например, √−1)
+`;
+
+// ============================================================
+// ИНИЦИАЛИЗАЦИЯ
+// ============================================================
+function init() {
+  const pool = document.getElementById('pool');
+  pool.innerHTML = '';
+
+  // Очищаем все семьи
+  document.querySelectorAll('.family-items').forEach(el => el.innerHTML = '');
+
+  // Перемешиваем числа
+  const shuffled = [...numbersData].sort(() => Math.random() - 0.5);
+
+  shuffled.forEach((item, i) => {
+    const el = document.createElement('div');
+    el.className = 'num';
+    el.textContent = item.name;
+    el.draggable = true;
+    el.dataset.family = item.family;
+    el.id = 'num-' + i;
+
+    // Drag события
+    el.addEventListener('dragstart', handleDragStart);
+    el.addEventListener('dragend', handleDragEnd);
+
+    pool.appendChild(el);
+  });
+
+  // Сброс статистики и обратной связи
+  document.getElementById('stat-correct').textContent = '0';
+  document.getElementById('stat-wrong').textContent = '0';
+  document.getElementById('stat-total').textContent = '0';
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback';
+  fb.innerHTML = '';
+}
+
+// ============================================================
+// DRAG & DROP
+// ============================================================
+function handleDragStart(e) {
+  e.dataTransfer.setData('text/plain', this.id);
+  e.dataTransfer.effectAllowed = 'move';
+  this.classList.add('dragging');
+}
+
+function handleDragEnd(e) {
+  this.classList.remove('dragging');
+  document.querySelectorAll('.family').forEach(f => f.classList.remove('drag-over'));
+  document.getElementById('pool').classList.remove('drag-over');
+}
+
+function allowDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+
+function leaveZone(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function drop(e, family) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+
+  const id = e.dataTransfer.getData('text/plain');
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  // Убираем классы правильности при перемещении
+  el.classList.remove('correct', 'wrong');
+
+  if (family === 'pool') {
+    document.getElementById('pool').appendChild(el);
+  } else {
+    const target = document.querySelector(`.family[data-family="${family}"] .family-items`);
+    target.appendChild(el);
+  }
+}
+
+// ============================================================
+// ПРОВЕРКА
+// ============================================================
+function check() {
+  let correct = 0;
+  let wrong = 0;
+  let total = 0;
+
+  document.querySelectorAll('.num').forEach(el => {
+    // Определяем, в какой семье находится число
+    const parentFamily = el.closest('.family')?.dataset.family || null;
+    total++;
+
+    if (parentFamily === el.dataset.family) {
+      el.classList.add('correct');
+      el.classList.remove('wrong');
+      correct++;
+    } else {
+      el.classList.add('wrong');
+      el.classList.remove('correct');
+      wrong++;
+    }
+  });
+
+  // Обновляем статистику
+  document.getElementById('stat-correct').textContent = correct;
+  document.getElementById('stat-wrong').textContent = wrong;
+  document.getElementById('stat-total').textContent = total;
+
+  // Обратная связь
+  const fb = document.getElementById('feedback');
+
+  if (correct === 10) {
+    fb.className = 'feedback ok show';
+    fb.innerHTML = `🎉 <strong>Правильно! Все 10 чисел на своих местах!</strong><br>
+      <span style="font-size: 14px;">Ты отлично знаешь числовые семьи! Так держать!</span>`;
+  } else if (correct >= 7) {
+    fb.className = 'feedback ok show';
+    fb.innerHTML = `👍 <strong>Хорошо! Правильно ${correct} из 10.</strong><br>
+      <span style="font-size: 14px;">Почти получилось! Попробуй исправить оставшиеся.</span>`;
+  } else {
+    fb.className = 'feedback no show';
+    fb.innerHTML = `🤔 <strong>Правильно ${correct} из 10.</strong><br>
+      <span style="font-size: 14px;">Не расстраивайся! Ошибка — это данные для роста. Попробуй ещё раз или посмотри подсказку.</span>`;
+  }
+}
+
+// ============================================================
+// ПОДСКАЗКА
+// ============================================================
+function showHint() {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback ok show';
+  fb.innerHTML = hintText.replace(/\n/g, '<br>');
+}
+
+// ============================================================
+// СБРОС
+// ============================================================
+function reset() {
+  init();
+}
+
+// ============================================================
+// ЗАПУСК
+// ============================================================
+init();
+
+console.log('🧩 Игра «Числовые семьи» загружена!');
+console.log('📢 Мягкая математика: https://vk.com/smartskillsmaria');
+</script>
+</body>
+</html>
